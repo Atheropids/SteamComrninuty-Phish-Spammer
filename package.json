@@ -1,0 +1,10 @@
+{
+  "name": "steamcomrninuty-ru",
+  "version": "1.0.0",
+  "main": "main.js",
+  "author": "Atheropids",
+  "dependencies": {
+    "tough-cookie": "^3.0.1"
+  },
+  "description": "I hate malicious phishers and they should all die in endless pain."
+}
