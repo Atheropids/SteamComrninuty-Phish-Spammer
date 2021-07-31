@@ -12,5 +12,6 @@ Screenshot of the malicious website's phishing interface:
 I uploaded the script just for ppls to spam malicious sites only, in effort of taking those scumbags down or at least rendering their service unavailable.
 
 ## Usage
-`node /path/to/directory/of/package`
+`node /path/to/directory/of/package`  
+  
 You should ONLY run this script under sandboxed environments with proper VPN settings. Node.js >= 11.7.0 is required.
