@@ -1,10 +1,13 @@
 {
   "name": "steamcomrninuty-ru",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "main": "main.js",
   "author": "Atheropids",
+  "engines": {
+    "node": "^11.7.0"
+  },
   "dependencies": {
     "tough-cookie": "^3.0.1"
   },
-  "description": "I hate malicious phishers and they should all die in endless pain."
+  "description": "Those who deliberately create malware for profits should all get tortured to death in endless pain and have their blood drained into sewers while alive."
 }
