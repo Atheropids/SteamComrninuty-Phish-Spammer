@@ -12,9 +12,11 @@ Screenshot of the malicious website's phishing interface:
 I uploaded the script just for ppls to spam malicious sites only, in effort of taking those scumbags down, rendering their service unavailable, or at least putting some stress on their servers to baybe slow down their malicious attacks.
 
 ## Usage
-`node /path/to/directory/of/package`  
+First, `cd` to `/path/to/directory/of/package`, and do `npm install` to install dependencies.  
+After that, simply do `node /path/to/directory/of/package`.  
+You may like to modify the settings section in the script to spam new servers with different setup.
   
-You should ONLY run this script under sandboxed environments with proper VPN settings. Node.js >= 11.7.0 is required.  
+ATTENTION: You should ONLY run this script under sandboxed environments with proper VPN settings. `Node.js >= 11.7.0` is required.  
   
 ## Change Log
 Link to the [change log](changelog.md).  
