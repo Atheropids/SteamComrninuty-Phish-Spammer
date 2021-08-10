@@ -22,19 +22,37 @@ const tough = require('tough-cookie');
  */
 
 // Target C&C server domain name.
-let spam_target = 'steamcomrninuty.ru';
+// Some malicious servers:
+//  [0] => steamcomrninuty.ru (seized)
+//  [1] => steamcommunity.link
+//  [2] => steamcommnunmity.com
+//  [3] => discorcl.link
+let spam_target = 'steamcommunity.link';
 
-// Number of connection procedures in parallel.
-let parallel_count = 2;
+// Remote path for server cookie init.
+//  [*] => /
+//  [2] => /id/zxayonax
+let entry_path = '/';
+
+// Remote path of the phishing page.
+//  [*] => /home/login
+//  [3] => /BT7D8pw3BYODgyTqxB8BzIbCyN9FSD30MirWfrMbd4a5a8d2fYvUHMxgt
+let phishing_page_path = '/home/login';
+
+// Remote path of the phishing data receiver.
+let phishing_target_path = '/login/dologin';
 
 // Debug mode: only one attempt and verbose output. Used for testing if the spam works.
 let debug_mode = false;
+
+// Number of connection procedures in parallel.
+let parallel_count = 1;
 
 // Random TCP error count threshold for each parallel member before abortion.
 let error_count_threshold = 8;
 
 // Upper limit of the number of spam messages.
-let spam_limit = 4;
+let spam_limit = 1000;
 
 // User-Agent for faking browser connection.
 let useragent = 'Mozilla/5.0 (Windows NT 6.1; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.79 Safari/537.36';
@@ -65,6 +83,9 @@ let spam_members_alive = parallel_count;
 
 // Cookie cache for each members.
 let lumen_sessions = new Array(parallel_count);
+
+// Another cookie cache for each members. It is used occationally.
+let _tdg = new Array(parallel_count);
 
 // Stage flag for each members.
 let spam_stage = new Array(parallel_count);
@@ -123,7 +144,7 @@ function do_spam(idx) {
       spam_sess_idx[idx] = dispatched_spams;
       dispatched_spams++;
 
-      let req1 = https.request(`https://${spam_target}/`, {
+      let req1 = https.request(`https://${spam_target}${entry_path}`, {
         method: 'GET',
         headers: {
           'User-Agent': useragent
@@ -147,7 +168,13 @@ function do_spam(idx) {
             let cookie = Cookie.parse(raw_cookies[i]);
             if (cookie.key === 'lumen_session') {
               console.log('[%s:%s] FOUND lumen_session => %s', `0${idx}`.slice(-2), `000000${spam_sess_idx[idx]}`.slice(-7), lumen_sessions[idx] = cookie.value);
-              spam_stage[idx] = 1; // Set stage to proceed.
+              spam_stage[idx] = (resp1.statusCode === 200 ? 3 : 2); // Set stage to proceed.
+            } else if (cookie.key.toLowerCase() === '_tdg' && !_tdg[idx]) {
+              console.log('[%s:%s] FOUND _tdg => %s', `0${idx}`.slice(-2), `000000${spam_sess_idx[idx]}`.slice(-7), _tdg[idx] = cookie.value);
+              // lumen_session not present but _tdg -s available -> need to get lumen_session using _tdg first. 
+              if(spam_stage[idx] < 2) {
+                spam_stage[idx] = 1;
+              }
             } else if (debug_mode) {
               console.log(JSON.stringify(cookie));
             }
@@ -178,8 +205,130 @@ function do_spam(idx) {
       break;
     }
 
-    // Final stage, send nonsense data to malicious server.
+    // Intermediate stage, where _tdg is present but not lumen_session.
     case 1: {
+      let req1 = https.request(`https://${spam_target}${entry_path}`, {
+        method: 'GET',
+        headers: {
+          'User-Agent': useragent,
+          'Cookie': `_tdg=${_tdg[idx]}; _TDG=${_tdg[idx]}`
+        }
+      });
+      req1.end();
+
+      req1.on('response', function (resp1) {
+        let buf1 = Buffer.allocUnsafe(0);
+
+        resp1.on('data', function (data) {
+          buf1 = Buffer.concat([buf1, data]);
+        });
+
+        resp1.on('end', function () {
+          console.log('[%s:%s] GET cookie attempt ; Status Code -> %d', `0${idx}`.slice(-2), `000000${spam_sess_idx[idx]}`.slice(-7), resp1.statusCode);
+
+          // Grab our target cookie named 'lumen_session'
+          let raw_cookies = resp1.headers['set-cookie'];
+          for (let i = 0; i < raw_cookies.length; i++) {
+            let cookie = Cookie.parse(raw_cookies[i]);
+            if (cookie.key === 'lumen_session') {
+              console.log('[%s:%s] FOUND lumen_session => %s', `0${idx}`.slice(-2), `000000${spam_sess_idx[idx]}`.slice(-7), lumen_sessions[idx] = cookie.value);
+              spam_stage[idx] = (resp1.statusCode === 200 ? 3 : 2); // Set stage to proceed.
+            } else if (debug_mode) {
+              console.log(JSON.stringify(cookie));
+            }
+          }
+
+          if (debug_mode) {
+            console.log(JSON.stringify(resp1.headers, null, 2));
+            console.log(buf1.toString('utf8'));
+          }
+
+          // Proceed to next stage if not stopping.
+          if (!stopping) {
+            setImmediate(do_spam, idx);
+          }
+        });
+      });
+
+      req1.on('error', function (err1) {
+        console.error(((err1 && err1.stack) ? err1.stack : err1));
+        if (!stopping && error_count[idx] < error_count_threshold) {
+          error_count[idx]++;
+          setImmediate(do_spam, idx);
+        } else {
+          kill_spam_member();
+        }
+      });
+
+      break;
+    }
+
+
+    // Intermediate stage, where a 200 OK is required before shooting.
+    case 2: {
+      let cookie = `lumen_session=${lumen_sessions[idx]}`;
+      if (_tdg[idx]) {
+        cookie = `_tdg=${_tdg[idx]}; ${cookie}; _TDG=${_tdg[idx]}`;
+      }
+      let req1 = https.request(`https://${spam_target}${entry_path}`, {
+        method: 'GET',
+        headers: {
+          'User-Agent': useragent,
+          'Cookie': cookie
+        }
+      });
+      req1.end();
+
+      req1.on('response', function (resp1) {
+        let buf1 = Buffer.allocUnsafe(0);
+
+        resp1.on('data', function (data) {
+          buf1 = Buffer.concat([buf1, data]);
+        });
+
+        resp1.on('end', function () {
+          console.log('[%s:%s] GET cookie attempt ; Status Code -> %d', `0${idx}`.slice(-2), `000000${spam_sess_idx[idx]}`.slice(-7), resp1.statusCode);
+
+          // Grab our target cookie named 'lumen_session'
+          let raw_cookies = resp1.headers['set-cookie'];
+          for (let i = 0; i < raw_cookies.length; i++) {
+            let cookie = Cookie.parse(raw_cookies[i]);
+            if (cookie.key.toLowerCase() === '_tdg' && !_tdg[idx]) {
+              console.log('[%s:%s] FOUND _tdg => %s', `0${idx}`.slice(-2), `000000${spam_sess_idx[idx]}`.slice(-7), _tdg[idx] = cookie.value);
+            }
+          }
+
+          if (resp1.statusCode === 200) {
+            spam_stage[idx] = 3;
+          }
+
+          if (debug_mode) {
+            console.log(JSON.stringify(resp1.headers, null, 2));
+            console.log(buf1.toString('utf8'));
+          }
+
+          // Proceed to next stage if not stopping.
+          if (!stopping) {
+            setImmediate(do_spam, idx);
+          }
+        });
+      });
+
+      req1.on('error', function (err1) {
+        console.error(((err1 && err1.stack) ? err1.stack : err1));
+        if (!stopping && error_count[idx] < error_count_threshold) {
+          error_count[idx]++;
+          setImmediate(do_spam, idx);
+        } else {
+          kill_spam_member();
+        }
+      });
+
+      break;
+    }
+
+    // Final stage, send nonsense data to malicious server.
+    case 3: {
       let credential = generate_fake_credentials();
       let content = Buffer.from(credential, 'utf8');
 
@@ -189,23 +338,29 @@ function do_spam(idx) {
       }
 
       // Setup headers.
+      let cookie = `lumen_session=${lumen_sessions[idx]}`;
+      if (_tdg[idx]) {
+        cookie = `_tdg=${_tdg[idx]}; ${cookie}; _TDG=${_tdg[idx]}`;
+      }
       let headers1 = {
         'Host': spam_target,
         'User-Agent': useragent,
+        'Connection': 'keep-alive',
         'Origin': `https://${spam_target}`,
-        'Referer': `https://${spam_target}/home/login`,
+        'Referer': `https://${spam_target}${phishing_page_path}`,
         'Content-Length': `${content.length}`,
         'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
         'Accept': '*/*',
+        'DNT': '1',
         'X-Requested-With': 'XMLHttpRequest',
-        'Cookie': `lumen_session=${lumen_sessions[idx]}`
+        'Cookie': cookie
       };
 
       if (debug_mode) {
         console.log(JSON.stringify(headers1, null, 2));
       }
 
-      let req1 = https.request(`https://${spam_target}/login/dologin`, {
+      let req1 = https.request(`https://${spam_target}${phishing_target_path}`, {
         method: 'POST',
         headers: headers1
       });
@@ -236,6 +391,7 @@ function do_spam(idx) {
 
             // Reset cached data and stage
             lumen_sessions[idx] = null;
+            _tdg[idx] = null;
             spam_stage[idx] = 0;
 
             // Loop
