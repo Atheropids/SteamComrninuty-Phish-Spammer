@@ -1,5 +1,5 @@
 # Steam Anti-Phish Spammer
-Spamming against a Russian Steam phishing campaign websites.
+Spamming against Russian Steam phishing campaign websites.
 
 ## Brief Intro
 Screenshot of a malicious Discord spam message posted by a compromised account:
