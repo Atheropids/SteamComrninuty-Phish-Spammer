@@ -1,4 +1,4 @@
-# Steam Anit-Phish Spammer
+# Steam Anti-Phish Spammer
 Spamming against a Russian Steam phishing campaign websites.
 
 ## Brief intro
