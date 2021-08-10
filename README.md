@@ -1,5 +1,5 @@
-# SteamComrninuty Phish Spammer
-Spamming against a Russian Steam phishing campaign website.
+# Steam Anit-Phish Spammer
+Spamming against a Russian Steam phishing campaign websites.
 
 ## Brief intro
 Screenshot of a malicious Discord spam message posted by a compromised account:
