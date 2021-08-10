@@ -14,4 +14,7 @@ I uploaded the script just for ppls to spam malicious sites only, in effort of t
 ## Usage
 `node /path/to/directory/of/package`  
   
-You should ONLY run this script under sandboxed environments with proper VPN settings. Node.js >= 11.7.0 is required.
+You should ONLY run this script under sandboxed environments with proper VPN settings. Node.js >= 11.7.0 is required.  
+  
+## Change Log
+Link to the [change log](changelog.md).  
