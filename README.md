@@ -9,7 +9,7 @@ Screenshot of the malicious website's phishing interface:
 ![Discord spam](screenshots/img02.png)
 
 ## WARNING: Do NOT use/modify this tool against innocent websites.
-I uploaded the script just for ppls to spam malicious sites only, in effort of taking those scumbags down or at least rendering their service unavailable.
+I uploaded the script just for ppls to spam malicious sites only, in effort of taking those scumbags down, rendering their service unavailable, or at least putting some stress on their servers to baybe slow down their malicious attacks.
 
 ## Usage
 `node /path/to/directory/of/package`  
