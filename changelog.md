@@ -3,6 +3,7 @@
 ## 1.2.0
 [+] Add 3 more servers. The server in the previous version has been taken down successfully.  
 [+] Add extra cookie detection to bypass spam checks.  
+[+] Major tweaks -- add more flexibilities for remote target paths.
   
 ## 1.1.0
 [+] Minor tweaks.  
