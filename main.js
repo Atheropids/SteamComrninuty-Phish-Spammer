@@ -63,7 +63,7 @@ let spam_limit = 1000;
 // Determine if the process should continue after receiving HTTP 429 (Too Many Requests).
 //  If this is set to a positive value (in seconds), the process will sleep for the spicified time before restart spamming;
 //  Else, the process terminates after receiving HTTP 429.
-let sleep_when_429 = 300;
+let sleep_when_429 = 600;
 
 // When sleep_when_429 is set and all servers are returning HTTP 429 errors, the target pool may be empty for a while.
 //  The members will constantly check if the target pool has become available again with this interval in milliseconds.
