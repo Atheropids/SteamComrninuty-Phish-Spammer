@@ -18,8 +18,5 @@ You may like to modify the settings section in the script to spam new servers wi
   
 **ATTENTION:** You should ONLY run this script under sandboxed environments with proper VPN settings. `Node.js >= 11.7.0` is required.  
   
-### Miscellaneous
-There are three servers alive listed in the comments within the settings section (in `main.js`). Feel free to spam all of the three or even add your own ones.  
-  
 ## Change Log
 Link to the [change log](changelog.md).  
