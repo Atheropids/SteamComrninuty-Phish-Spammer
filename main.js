@@ -43,9 +43,10 @@ class PhishingServer {
 let spam_targets = [
   // [seized operation] new PhishingServer('steamcomrninuty.ru'),
   // [seized operation] new PhishingServer('steamcommnunmity.com', '/id/zxayonax'),
+  // [seized operation] new PhishingServer('nitro-discord.ru', '/airdrop'),
   new PhishingServer('steamcommunity.link'),
   new PhishingServer('discorcl.link'),
-  new PhishingServer('nitro-discord.ru', '/airdrop'),
+  new PhishingServer('steamcommmunilty.com', '/tradoffer/new/?partner=406482431&token=lfk938iK'),
 ];
 
 // Debug mode: only one attempt and verbose output. Used for testing if the spam works.
