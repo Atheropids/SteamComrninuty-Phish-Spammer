@@ -47,13 +47,14 @@ let spam_targets = [
   new PhishingServer('steamcommunity.link'),
   new PhishingServer('discorcl.link'),
   new PhishingServer('steamcommmunilty.com', '/tradoffer/new/?partner=406482431&token=lfk938iK'),
+  new PhishingServer('discorrd.ru'),
 ];
 
 // Debug mode: only one attempt and verbose output. Used for testing if the spam works.
 let debug_mode = false;
 
 // Number of connection procedures in parallel.
-let parallel_count = 4;
+let parallel_count = 1;
 
 // Random TCP error count threshold for each parallel member before abortion.
 let error_count_threshold = 8;
@@ -128,7 +129,7 @@ let timeout_handles_member = new Array(parallel_count);
 // Cached targets for each session.
 let spam_targets_cache = new Array(parallel_count);
 
-function randomU32() {
+function nextU32() {
   return Math.floor(Math.random() * 0x100000000);
 }
 
@@ -136,7 +137,7 @@ function randomU32() {
 function generate_random_string() {
   let ret = '';
   for (let i = 0; i < 2; i++) {
-    let int01 = randomU32();
+    let int01 = nextU32();
     while (int01 > 0) {
       ret = `${String.fromCharCode(mass_char_sets[int01 % mass_char_sets.length])}${ret}`;
       int01 = Math.floor(int01 / mass_char_sets.length);
@@ -187,7 +188,7 @@ function do_spam(idx) {
       // Check targets availibility
       if (target_pool.size > 0) {
         timeout_handles_member[idx] = null;
-        spam_targets_cache[idx] = target_pool.get(Array.from(target_pool.keys())[randomU32() % target_pool.size]);
+        spam_targets_cache[idx] = target_pool.get(Array.from(target_pool.keys())[nextU32() % target_pool.size]);
       } else {
         if (sleep_when_429 > 0) {
           timeout_handles_member[idx] = setTimeout(do_spam, revive_interval, idx);
@@ -223,19 +224,21 @@ function do_spam(idx) {
 
           // Grab our target cookie named 'lumen_session'
           let raw_cookies = resp1.headers['set-cookie'];
-          for (let i = 0; i < raw_cookies.length; i++) {
-            let cookie = Cookie.parse(raw_cookies[i]);
-            if (cookie.key === 'lumen_session') {
-              console.log('[%s:%s] FOUND lumen_session => %s', `0${idx}`.slice(-2), `000000${spam_sess_idx[idx]}`.slice(-7), lumen_sessions[idx] = cookie.value);
-              spam_stage[idx] = (resp1.statusCode === 200 ? 3 : 2); // Set stage to proceed.
-            } else if (cookie.key.toLowerCase() === '_tdg' && !_tdg[idx]) {
-              console.log('[%s:%s] FOUND _tdg => %s', `0${idx}`.slice(-2), `000000${spam_sess_idx[idx]}`.slice(-7), _tdg[idx] = cookie.value);
-              // lumen_session not present but _tdg -s available -> need to get lumen_session using _tdg first. 
-              if(spam_stage[idx] < 2) {
-                spam_stage[idx] = 1;
+          if (raw_cookies) {
+            for (let i = 0; i < raw_cookies.length; i++) {
+              let cookie = Cookie.parse(raw_cookies[i]);
+              if (cookie.key === 'lumen_session') {
+                console.log('[%s:%s] FOUND lumen_session => %s', `0${idx}`.slice(-2), `000000${spam_sess_idx[idx]}`.slice(-7), lumen_sessions[idx] = cookie.value);
+                spam_stage[idx] = (resp1.statusCode === 200 ? 3 : 2); // Set stage to proceed.
+              } else if (cookie.key.toLowerCase() === '_tdg' && !_tdg[idx]) {
+                console.log('[%s:%s] FOUND _tdg => %s', `0${idx}`.slice(-2), `000000${spam_sess_idx[idx]}`.slice(-7), _tdg[idx] = cookie.value);
+                // lumen_session not present but _tdg -s available -> need to get lumen_session using _tdg first. 
+                if(spam_stage[idx] < 2) {
+                  spam_stage[idx] = 1;
+                }
+              } else if (debug_mode) {
+                console.log(JSON.stringify(cookie));
               }
-            } else if (debug_mode) {
-              console.log(JSON.stringify(cookie));
             }
           }
 
@@ -289,13 +292,15 @@ function do_spam(idx) {
 
           // Grab our target cookie named 'lumen_session'
           let raw_cookies = resp1.headers['set-cookie'];
-          for (let i = 0; i < raw_cookies.length; i++) {
-            let cookie = Cookie.parse(raw_cookies[i]);
-            if (cookie.key === 'lumen_session') {
-              console.log('[%s:%s] FOUND lumen_session => %s', `0${idx}`.slice(-2), `000000${spam_sess_idx[idx]}`.slice(-7), lumen_sessions[idx] = cookie.value);
-              spam_stage[idx] = (resp1.statusCode === 200 ? 3 : 2); // Set stage to proceed.
-            } else if (debug_mode) {
-              console.log(JSON.stringify(cookie));
+          if (raw_cookies) {
+            for (let i = 0; i < raw_cookies.length; i++) {
+              let cookie = Cookie.parse(raw_cookies[i]);
+              if (cookie.key === 'lumen_session') {
+                console.log('[%s:%s] FOUND lumen_session => %s', `0${idx}`.slice(-2), `000000${spam_sess_idx[idx]}`.slice(-7), lumen_sessions[idx] = cookie.value);
+                spam_stage[idx] = (resp1.statusCode === 200 ? 3 : 2); // Set stage to proceed.
+              } else if (debug_mode) {
+                console.log(JSON.stringify(cookie));
+              }
             }
           }
 
@@ -326,7 +331,6 @@ function do_spam(idx) {
       break;
     }
 
-
     // Intermediate stage, where a 200 OK is required before shooting.
     case 2: {
       let cookie = `lumen_session=${lumen_sessions[idx]}`;
@@ -354,10 +358,12 @@ function do_spam(idx) {
 
           // Grab our target cookie named 'lumen_session'
           let raw_cookies = resp1.headers['set-cookie'];
-          for (let i = 0; i < raw_cookies.length; i++) {
-            let cookie = Cookie.parse(raw_cookies[i]);
-            if (cookie.key.toLowerCase() === '_tdg' && !_tdg[idx]) {
-              console.log('[%s:%s] FOUND _tdg => %s', `0${idx}`.slice(-2), `000000${spam_sess_idx[idx]}`.slice(-7), _tdg[idx] = cookie.value);
+          if (raw_cookies) {
+            for (let i = 0; i < raw_cookies.length; i++) {
+              let cookie = Cookie.parse(raw_cookies[i]);
+              if (cookie.key.toLowerCase() === '_tdg' && !_tdg[idx]) {
+                console.log('[%s:%s] FOUND _tdg => %s', `0${idx}`.slice(-2), `000000${spam_sess_idx[idx]}`.slice(-7), _tdg[idx] = cookie.value);
+              }
             }
           }
 

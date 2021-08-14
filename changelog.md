@@ -1,5 +1,9 @@
 # Change Log
 
+## 1.3.2
+[+] Added 1 more server.  
+[+] Minor bug fix.  
+  
 ## 1.3.1
 [+] Added 1 more server.  
   
