@@ -42,12 +42,13 @@ class PhishingServer {
 // List of malicious servers.
 let spam_targets = [
   // [seized operation] new PhishingServer('steamcomrninuty.ru'),
-  // [seized operation] new PhishingServer('steamcommnunmity.com', '/id/zxayonax'),
+  new PhishingServer('steamcommnunmity.com', '/id/zxayonax'),
   // [seized operation] new PhishingServer('nitro-discord.ru', '/airdrop'),
-  new PhishingServer('steamcommunity.link'),
-  new PhishingServer('discorcl.link'),
+  // [seized operation] new PhishingServer('steamcommunity.link'),
+  // [seized operation] new PhishingServer('discorcl.link'),
   new PhishingServer('steamcommmunilty.com', '/tradoffer/new/?partner=406482431&token=lfk938iK'),
   new PhishingServer('discorrd.ru'),
+  new PhishingServer('free-nitroos.ru'),
 ];
 
 // Debug mode: only one attempt and verbose output. Used for testing if the spam works.
@@ -129,6 +130,7 @@ let timeout_handles_member = new Array(parallel_count);
 // Cached targets for each session.
 let spam_targets_cache = new Array(parallel_count);
 
+// Generate a random unsigned 32-bit integer.
 function nextU32() {
   return Math.floor(Math.random() * 0x100000000);
 }
