@@ -42,13 +42,15 @@ class PhishingServer {
 // List of malicious servers.
 let spam_targets = [
   // [seized operation] new PhishingServer('steamcomrninuty.ru'),
-  new PhishingServer('steamcommnunmity.com', '/id/zxayonax'),
+  // [seized operation] new PhishingServer('steamcommnunmity.com', '/id/zxayonax'),
   // [seized operation] new PhishingServer('nitro-discord.ru', '/airdrop'),
   // [seized operation] new PhishingServer('steamcommunity.link'),
   // [seized operation] new PhishingServer('discorcl.link'),
   new PhishingServer('steamcommmunilty.com', '/tradoffer/new/?partner=406482431&token=lfk938iK'),
   new PhishingServer('discorrd.ru'),
   new PhishingServer('free-nitroos.ru'),
+  new PhishingServer('discod.info', '/nitro-gift'),
+  new PhishingServer('discord-nitro.pro'),
 ];
 
 // Debug mode: only one attempt and verbose output. Used for testing if the spam works.
